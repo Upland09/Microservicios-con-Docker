@@ -1,0 +1,42 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: msvc-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: estudiantes
+          uri: lb://msvc-estudiantes
+          predicates:
+            - Path=/api/estudiantes/**
+
+        - id: asignaturas
+          uri: lb://msvc-asignaturas
+          predicates:
+            - Path=/api/asignaturas/**
+        
+        - id: usuario-servicio
+          uri: lb://usuario-servicio
+          predicates:
+            - Path=/usuarios/**, /auth/**
+          filters:
+            - RewritePath=/auth/(?<segment>.*), /auth/${segment}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
+            
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

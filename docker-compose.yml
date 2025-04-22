@@ -1,0 +1,73 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d
+
+  config-service:
+    build: ./microservicio-config
+    container_name: config-service
+    ports:
+      - "8888:8888"
+    depends_on:
+      - mysql
+
+  eureka-service:
+    build: ./microservicio-eureka
+    container_name: eureka-service
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-service
+
+  gateway:
+    build: ./microservicio-gateway
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - config-service
+      - eureka-service
+      - usuario-servicio
+      - estudiantes-servicio
+      - asignaturas-servicio
+
+  usuario-servicio:
+    build: ./usuario-servicio
+    container_name: usuario-servicio
+    ports:
+      - "8081:8081"
+    depends_on:
+      - config-service
+      - eureka-service
+      - mysql
+
+  estudiantes-servicio:
+    build: ./microservicio-estudiantes
+    container_name: estudiantes-servicio
+    ports:
+      - "8090:8090"
+    depends_on:
+      - config-service
+      - eureka-service
+      - mysql
+
+  asignaturas-servicio:
+    build: ./microservicio-asignaturas
+    container_name: asignaturas-servicio
+    ports:
+      - "9090:9090"
+    depends_on:
+      - config-service
+      - eureka-service
+      - mysql
+
+volumes:
+  mysql_data:
